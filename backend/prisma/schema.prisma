@@ -1,0 +1,82 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String
+  role      UserRole @default(USER)
+  venues    Venue[]
+  bookings  Booking[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Venue {
+  id            String      @id @default(cuid())
+  name          String
+  description   String?
+  capacity      Int
+  price         Int         // New: price of the venue
+  contactNumber String?     // New: contact number for the venue
+  occasion      String?     // New: occasion type (e.g., Wedding, Birthday)
+  images        String[]    // New: array of image URLs/paths
+  isPosted      Boolean     @default(false) // New: posted/draft state
+  ownerId       String
+  owner         User        @relation(fields: [ownerId], references: [id])
+  availability  Availability[]
+  bookings      Booking[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model Availability {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  date      DateTime
+  status    AvailabilityStatus
+  bookingId String?
+  booking   Booking? @relation(fields: [bookingId], references: [id])
+  @@unique([venueId, date])
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  venueId   String
+  venue     Venue    @relation(fields: [venueId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  startDate DateTime
+  endDate   DateTime
+  status    BookingStatus @default(PENDING)
+  availability Availability[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  VENUE_OWNER
+  USER
+  GUEST
+}
+
+enum AvailabilityStatus {
+  AVAILABLE
+  BOOKED
+  BLOCKED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
