@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/router';
 
 export default function VendorLogin() {
-  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
@@ -17,11 +16,18 @@ export default function VendorLogin() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
+      
+      // Clear any existing data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Set new user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.user.role);
       localStorage.setItem('username', data.user.name);
-      // Redirect to admin/vendor homepage
-      router.push('/admin');
+      
+      // Force a complete page refresh to ensure fresh state
+      window.location.href = '/admin';
     } catch (err: any) {
       alert(err.message || 'Login failed');
     }
@@ -32,14 +38,6 @@ export default function VendorLogin() {
       <form onSubmit={handleLogin} className="bg-white p-8 rounded shadow-md w-full max-w-md">
          <h1 className="text-3xl font-extrabold text-purple-700 mb-4 text-center">EazyVenue</h1>
         <h2 className="text-2xl font-bold mb-6 text-center">Vendor Login</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          className="w-full mb-4 px-4 py-2 border rounded"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          required
-        />
         <input
           type="email"
           placeholder="Email"

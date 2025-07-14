@@ -13,15 +13,25 @@ export default function CustomerLogin() {
       const res = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email: email,
+          password: password
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
+      
+      // Clear any existing data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Set new user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.user.role);
       localStorage.setItem('username', data.user.name);
-      // Redirect to user homepage
-      router.push('/');
+      
+      // Force a complete page refresh to ensure fresh state
+      window.location.href = '/';
     } catch (err: any) {
       alert(err.message || 'Login failed');
     }
@@ -56,6 +66,7 @@ export default function CustomerLogin() {
           onChange={e => setPassword(e.target.value)}
           required
         />
+        <p className="text-xs text-gray-500 mb-4">Password should be minimum 6 letters.</p>
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"

@@ -21,14 +21,24 @@ export default function VendorRegister() {
           name: username,
           password,
           role: 'VENUE_OWNER',
+          // Note: phone, businessName, and businessAddress are not sent to backend
+          // as the backend schema doesn't include these fields
         }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
+      
+      // Clear any existing data
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // Set new user data
       localStorage.setItem('token', data.token);
       localStorage.setItem('role', data.user.role);
       localStorage.setItem('username', data.user.name);
-      router.push('/admin');
+      
+      // Force a complete page refresh to ensure fresh state
+      window.location.href = '/admin';
     } catch (err: any) {
       alert(err.message || 'Registration failed');
     }
@@ -57,36 +67,34 @@ export default function VendorRegister() {
         />
         <input
           type="tel"
-          placeholder="Phone Number"
+          placeholder="Phone Number (Optional)"
           className="w-full mb-4 px-4 py-2 border rounded"
           value={phone}
           onChange={e => setPhone(e.target.value)}
-          required
         />
         <input
           type="text"
-          placeholder="Business Name"
+          placeholder="Business Name (Optional)"
           className="w-full mb-4 px-4 py-2 border rounded"
           value={businessName}
           onChange={e => setBusinessName(e.target.value)}
-          required
         />
         <input
           type="text"
-          placeholder="Business Address"
+          placeholder="Business Address (Optional)"
           className="w-full mb-4 px-4 py-2 border rounded"
           value={businessAddress}
           onChange={e => setBusinessAddress(e.target.value)}
-          required
         />
         <input
           type="password"
           placeholder="Password"
-          className="w-full mb-6 px-4 py-2 border rounded"
+          className="w-full mb-4 px-4 py-2 border rounded"
           value={password}
           onChange={e => setPassword(e.target.value)}
           required
         />
+        <p className="text-xs text-gray-500 mb-4">Password should be minimum 6 letters.</p>
         <button
           type="submit"
           className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700"

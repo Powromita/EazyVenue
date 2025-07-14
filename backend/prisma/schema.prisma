@@ -49,17 +49,23 @@ model Availability {
 }
 
 model Booking {
-  id        String   @id @default(cuid())
-  venueId   String
-  venue     Venue    @relation(fields: [venueId], references: [id])
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  startDate DateTime
-  endDate   DateTime
-  status    BookingStatus @default(PENDING)
-  availability Availability[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String        @id @default(cuid())
+  venueId         String
+  venue           Venue         @relation(fields: [venueId], references: [id])
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  eventDate       DateTime
+  eventTime       String
+  guestCount      Int
+  eventType       String
+  contactName     String
+  contactEmail    String
+  contactPhone    String
+  specialRequests String?
+  status          BookingStatus @default(PENDING)
+  availability    Availability[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 enum UserRole {
