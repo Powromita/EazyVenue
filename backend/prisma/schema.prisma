@@ -17,6 +17,25 @@ model User {
   bookings  Booking[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  // Vendor profile fields
+  businessName      String?
+  contactPerson     String?
+  phone             String?
+  address           String?
+  businessType      String?
+  yearsInBusiness   String?
+  description       String?
+  website           String?
+  venueTypes        String[]
+  capacityRange     String?
+  amenities         String[]
+  bookingPolicies   String?
+  availabilityStatus String?
+  gst               String?
+  paymentMethods    String[]
+  pricingPackages   String?
+  certifications    String[]
+  emergencyContact  String?
 }
 
 model Venue {

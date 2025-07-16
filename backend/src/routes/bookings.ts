@@ -69,23 +69,30 @@ export default async function bookingRoutes(fastify: FastifyInstance) {
         return reply.status(409).send({ error: 'Venue is already booked for this date' });
       }
 
-      // Create or find a guest user for the booking
-      // @ts-ignore: prisma is decorated on fastify instance
-      let guestUser = await fastify.prisma.user.findFirst({
-        where: { email: bookingData.contactEmail }
-      });
-
-      if (!guestUser) {
-        // Create a guest user
+      // Use authenticated user if available
+      let userId;
+      // @ts-ignore: user is set by auth middleware
+      if ((request as any).user && (request as any).user.id) {
+        userId = (request as any).user.id;
+      } else {
+        // Create or find a guest user for the booking
         // @ts-ignore: prisma is decorated on fastify instance
-        guestUser = await fastify.prisma.user.create({
-          data: {
-            email: bookingData.contactEmail,
-            name: bookingData.contactName,
-            password: 'guest-password', // In real app, this would be properly hashed
-            role: 'USER',
-          },
+        let guestUser = await fastify.prisma.user.findFirst({
+          where: { email: bookingData.contactEmail }
         });
+        if (!guestUser) {
+          // Create a guest user
+          // @ts-ignore: prisma is decorated on fastify instance
+          guestUser = await fastify.prisma.user.create({
+            data: {
+              email: bookingData.contactEmail,
+              name: bookingData.contactName,
+              password: 'guest-password', // In real app, this would be properly hashed
+              role: 'USER',
+            },
+          });
+        }
+        userId = guestUser.id;
       }
 
       // Create the booking
@@ -93,7 +100,7 @@ export default async function bookingRoutes(fastify: FastifyInstance) {
       const booking = await fastify.prisma.booking.create({
         data: {
           venueId: bookingData.venueId,
-          userId: guestUser.id,
+          userId: userId,
           eventDate: new Date(bookingData.eventDate),
           eventTime: bookingData.eventTime,
           guestCount: bookingData.guestCount,
@@ -102,7 +109,7 @@ export default async function bookingRoutes(fastify: FastifyInstance) {
           contactEmail: bookingData.contactEmail,
           contactPhone: bookingData.contactPhone,
           specialRequests: bookingData.specialRequests || '',
-          status: 'CONFIRMED', // Auto-confirm all bookings
+          status: 'PENDING', // Require vendor approval for new bookings
         },
         include: {
           venue: true,
@@ -350,12 +357,64 @@ export default async function bookingRoutes(fastify: FastifyInstance) {
         },
       });
 
+      // If booking is cancelled, update venue availability
+      if (status === 'CANCELLED') {
+        // @ts-ignore: prisma is decorated on fastify instance
+        await fastify.prisma.availability.upsert({
+          where: {
+            venueId_date: {
+              venueId: booking.venueId,
+              date: booking.eventDate,
+            },
+          },
+          update: {
+            status: 'AVAILABLE',
+            bookingId: null,
+          },
+          create: {
+            venueId: booking.venueId,
+            date: booking.eventDate,
+            status: 'AVAILABLE',
+            bookingId: null,
+          },
+        });
+        // Emit real-time update for venue availability
+        if ((fastify as any).io) {
+          (fastify as any).io.to(`venue-${booking.venueId}`).emit('availability-updated', {
+            venueId: booking.venueId,
+            date: booking.eventDate,
+            status: 'AVAILABLE',
+            bookingId: null,
+          });
+        }
+      }
+
       return reply.send({ 
         message: 'Booking status updated successfully',
         booking 
       });
     } catch (error) {
       console.error('Error updating booking status:', error);
+      return reply.status(500).send({ error: 'Internal server error' });
+    }
+  });
+
+  // Get bookings for the currently authenticated user
+  fastify.get('/api/bookings/me', {
+    preValidation: [fastify.authenticate],
+  }, async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      // @ts-ignore: user is set by auth middleware
+      const userId = (request as any).user.id;
+      // @ts-ignore: prisma is decorated on fastify instance
+      const bookings = await fastify.prisma.booking.findMany({
+        where: { userId },
+        include: { venue: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      return reply.send({ bookings });
+    } catch (error) {
+      console.error('Error fetching my bookings:', error);
       return reply.status(500).send({ error: 'Internal server error' });
     }
   });

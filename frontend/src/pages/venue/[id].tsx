@@ -136,14 +136,6 @@ export default function VenueDetails() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
       <Header />
-      <div className="max-w-6xl mx-auto px-4 pt-4">
-        <button
-          onClick={() => router.push('/')}
-          className="mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          Home
-        </button>
-      </div>
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Venue Details */}

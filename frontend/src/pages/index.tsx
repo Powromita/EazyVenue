@@ -3,6 +3,7 @@ import VenueSearchBar from '../components/VenueSearchBar';
 import VenueCard from '../components/VenueCard';
 import BookingCard from '../components/BookingCard';
 import { useState, useEffect } from 'react';
+import Footer from '../components/Footer';
 
 type Venue = {
   id: string;
@@ -30,12 +31,8 @@ type Booking = {
 
 export default function Home() {
   const [venues, setVenues] = useState<Venue[]>([]);
-  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bookingsLoading, setBookingsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState('');
-  const [showBookings, setShowBookings] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [locationEnabled, setLocationEnabled] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -72,67 +69,24 @@ export default function Home() {
     }
   };
 
-  const fetchUserBookings = async (email: string) => {
-    setBookingsLoading(true);
-    try {
-      const response = await fetch(`http://localhost:5000/api/bookings/user/${encodeURIComponent(email)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setBookings(data.bookings);
-        setShowBookings(true);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.error || 'Failed to fetch bookings');
-      }
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      setError('Failed to fetch bookings');
-    } finally {
-      setBookingsLoading(false);
-    }
-  };
-
-  const handleViewBookings = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (userEmail.trim()) {
-      fetchUserBookings(userEmail.trim());
-    }
-  };
-
-  const handleCancelBooking = (bookingId: string) => {
-    // Remove the cancelled booking from the list
-    setBookings(prevBookings => prevBookings.filter(booking => booking.id !== bookingId));
-  };
-
   const enableLocation = () => {
     setLocationLoading(true);
-    
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser');
       setLocationLoading(false);
       return;
     }
-
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const { latitude, longitude } = position.coords;
         setUserLocation({ lat: latitude, lng: longitude });
         setLocationEnabled(true);
         setLocationLoading(false);
-        
-        // You could use this location to:
-        // 1. Show nearby venues first
-        // 2. Pre-fill location in search
-        // 3. Calculate distances to venues
-        console.log('Location enabled:', { latitude, longitude });
-        
-        // For now, let's just show a success message
         alert('Location enabled! We\'ll use this to show you nearby venues.');
       },
       (error) => {
         console.error('Error getting location:', error);
         setLocationLoading(false);
-        
         let errorMessage = 'Unable to get your location';
         switch (error.code) {
           case error.PERMISSION_DENIED:
@@ -191,115 +145,61 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-100 to-purple-200">
       <Header />
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* My Bookings Section */}
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">My Bookings</h2>
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <form onSubmit={handleViewBookings} className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Enter your email to view your bookings
-                </label>
-                <input
-                  type="email"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  placeholder="your.email@example.com"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={bookingsLoading}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {bookingsLoading ? 'Loading...' : 'View Bookings'}
-              </button>
-            </form>
-
-            {showBookings && (
-              <div className="mt-6">
-                {bookings.length > 0 ? (
-                  <div className="grid gap-4">
-                    {bookings.map((booking) => (
-                      <BookingCard 
-                        key={booking.id} 
-                        booking={booking} 
-                        onCancel={handleCancelBooking}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    No bookings found for this email address.
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
+      <main className="flex-1 max-w-6xl mx-auto px-4 py-8 w-full">
         {/* Venues Section */}
-        <div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">Available Venues</h2>
-          
-          {/* Search Bar with Location Button */}
-          <div className="mb-4">
-            <VenueSearchBar onSearch={handleSearch} />
-          </div>
-          
-          {/* Location Button and Message */}
-          <div className="flex items-center gap-4 mb-6">
-            {locationEnabled ? (
-              <div className="flex items-center gap-2 text-green-600">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="font-medium">Location Enabled</span>
-              </div>
-            ) : (
-              <button
-                onClick={enableLocation}
-                disabled={locationLoading}
-                className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {locationLoading ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Getting Location...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Turn On Location
-                  </>
-                )}
-              </button>
-            )}
-            <p className="text-sm text-gray-600">
-              Enable location to find venues near you and get personalized recommendations
-            </p>
-          </div>
-          
-          <div className="overflow-x-auto">
-            <div className="flex gap-6">
-              {venues.map((venue) => (
-                <VenueCard key={venue.id} venue={venue} />
-              ))}
+        <h2 className="text-3xl font-bold text-gray-800 mb-6">Available Venues</h2>
+        {/* Search Bar with Location Button */}
+        <div className="mb-4">
+          <VenueSearchBar onSearch={handleSearch} />
+        </div>
+        {/* Location Button and Message */}
+        <div className="flex items-center gap-4 mb-6">
+          {locationEnabled ? (
+            <div className="flex items-center gap-2 text-green-600">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              <span className="font-medium">Location Enabled</span>
             </div>
-          </div>
+          ) : (
+            <button
+              onClick={enableLocation}
+              disabled={locationLoading}
+              className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {locationLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Getting Location...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  Turn On Location
+                </>
+              )}
+            </button>
+          )}
+          <p className="text-sm text-gray-600">
+            Enable location to find venues near you and get personalized recommendations
+          </p>
+        </div>
+        {/* Responsive Grid for Venue Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-full">
+          {venues.map((venue) => (
+            <VenueCard key={venue.id} venue={venue} />
+          ))}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

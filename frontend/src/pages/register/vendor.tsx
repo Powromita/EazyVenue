@@ -47,7 +47,7 @@ export default function VendorRegister() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-200">
       <form onSubmit={handleRegister} className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 className="text-3xl font-extrabold text-purple-700 mb-4 text-center">EazyVenue</h1>
+        <h1 className="text-3xl font-extrabold text-purple-700 mb-4 text-center">venue booking</h1>
         <h2 className="text-2xl font-bold mb-6 text-center">Vendor Registration</h2>
         <input
           type="text"

@@ -54,6 +54,18 @@ export default function BookingPage() {
     if (id) {
       fetchVenueDetails();
     }
+    // Autofill contact info for logged-in customers
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('role');
+      if (role === 'customer') {
+        setBookingForm(prev => ({
+          ...prev,
+          contactName: localStorage.getItem('username') || '',
+          contactEmail: localStorage.getItem('email') || '',
+          contactPhone: localStorage.getItem('phone') || '',
+        }));
+      }
+    }
   }, [id]);
 
   const fetchVenueDetails = async () => {
@@ -265,6 +277,7 @@ export default function BookingPage() {
                   onChange={handleInputChange}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  disabled={typeof window !== 'undefined' && localStorage.getItem('role') === 'customer'}
                 />
               </div>
 
@@ -280,6 +293,7 @@ export default function BookingPage() {
                     onChange={handleInputChange}
                     required
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    disabled={typeof window !== 'undefined' && localStorage.getItem('role') === 'customer'}
                   />
                 </div>
                 <div>

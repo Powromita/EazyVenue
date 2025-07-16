@@ -216,7 +216,7 @@ export default function BookingsManagement() {
                               disabled={updating === booking.id}
                               className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 disabled:opacity-50"
                             >
-                              {updating === booking.id ? 'Cancelling...' : 'Cancel'}
+                              {updating === booking.id ? 'Declining...' : 'Decline'}
                             </button>
                           </div>
                         )}

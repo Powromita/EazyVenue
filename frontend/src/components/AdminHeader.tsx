@@ -20,7 +20,7 @@ export default function AdminHeader() {
     <header className="bg-white shadow sticky top-0 z-50 border-b">
       <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-6 flex-1">
-          <span className="text-xl font-semibold text-gray-900 tracking-tight">EazyVenue</span>
+          <span className="text-xl font-semibold text-gray-900 tracking-tight">venue booking</span>
           <a
             href="/admin"
             className="text-orange-600 hover:text-orange-700 font-medium transition text-base px-3 py-1 rounded hover:bg-orange-50"
@@ -50,7 +50,7 @@ export default function AdminHeader() {
                 <Menu.Item>
                   {({ active }) => (
                     <button
-                      onClick={() => window.location.href = '/admin/profile'}
+                      onClick={() => window.location.href = '/profile-vendor'}
                       className={`block w-full text-left px-4 py-2 text-sm text-gray-700 ${active ? 'bg-blue-100' : ''}`}
                     >
                       Profile

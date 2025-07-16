@@ -25,17 +25,25 @@ export default function VenuesList() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   
   // Check authentication
   useAuth('VENUE_OWNER');
 
   useEffect(() => {
-    fetchVenues();
+    if (typeof window !== 'undefined') {
+      setToken(localStorage.getItem('token'));
+    }
   }, []);
+
+  useEffect(() => {
+    if (token) {
+      fetchVenues();
+    }
+  }, [token]);
 
   const fetchVenues = async () => {
     try {
-      const token = localStorage.getItem('token');
       const response = await fetch('http://localhost:5000/api/vendor/venues', {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -149,7 +157,7 @@ export default function VenuesList() {
                       {venue.occasion && (
                         <div><strong>Perfect for:</strong> {venue.occasion}</div>
                       )}
-                      <div><strong>Owner:</strong> {venue.owner.name}</div>
+                      <div><strong>Owner:</strong> {venue.owner ? venue.owner.name : 'Unknown'}</div>
                       <div><strong>Added:</strong> {formatDate(venue.createdAt)}</div>
                     </div>
                     <button
