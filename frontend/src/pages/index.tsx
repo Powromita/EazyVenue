@@ -4,6 +4,7 @@ import VenueCard from '../components/VenueCard';
 import BookingCard from '../components/BookingCard';
 import { useState, useEffect } from 'react';
 import Footer from '../components/Footer';
+import { API_ENDPOINTS } from '../utils/config';
 
 type Venue = {
   id: string;
@@ -43,7 +44,7 @@ export default function Home() {
 
   const fetchVenues = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/venues');
+      const response = await fetch(API_ENDPOINTS.VENUES);
       if (response.ok) {
         const data = await response.json();
         // Transform the data to match our frontend structure

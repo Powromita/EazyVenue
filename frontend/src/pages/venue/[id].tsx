@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Header from '../../components/Header';
 import { useSocket } from '../../hooks/useSocket';
+import { getApiUrl } from '../../utils/config';
 
 type Venue = {
   id: string;
@@ -66,7 +67,7 @@ export default function VenueDetails() {
 
   const fetchVenueDetails = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/venues/${id}`);
+      const response = await fetch(getApiUrl(`/api/venues/${id}`));
       if (response.ok) {
         const data = await response.json();
         setVenue(data.venue);
@@ -80,7 +81,7 @@ export default function VenueDetails() {
 
   const fetchAvailability = async () => {
     try {
-      const response = await fetch(`http://localhost:5000/api/venues/${id}/availability`);
+      const response = await fetch(getApiUrl(`/api/venues/${id}/availability`));
       if (response.ok) {
         const data = await response.json();
         setAvailability(data.availability);
