@@ -15,13 +15,21 @@ import { createServer } from 'http';
 const fastify = Fastify({ logger: true });
 fastify.register(prismaPlugin);
 fastify.register(cors, { 
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], 
+  origin: [
+    'http://localhost:3000', 
+    'http://127.0.0.1:3000',
+    process.env.FRONTEND_URL || 'http://localhost:3000'
+  ], 
   credentials: true,
 });
 fastify.register(fastifyJwt, { secret: process.env.JWT_SECRET || 'supersecret' });
 fastify.register(fastifySocketIO, {
   cors: {
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: [
+      'http://localhost:3000', 
+      'http://127.0.0.1:3000',
+      process.env.FRONTEND_URL || 'http://localhost:3000'
+    ],
     credentials: true,
   },
 });
